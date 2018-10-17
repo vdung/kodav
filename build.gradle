@@ -1,0 +1,19 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm" version '1.2.71' apply false
+}
+
+ext {
+    versions = [
+            'kotlin': '1.2.71'
+    ]
+}
+
+group 'com.github.vdung'
+version '0.1.0'
+
+allprojects {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
