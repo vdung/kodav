@@ -26,16 +26,17 @@ class XmlTest {
     @Test
     fun parser_parse() {
         val parser = Xml.newPullParser(ByteArrayInputStream("""
-            <bar>baz</bar>
-        """.trimIndent().toByteArray()))
+            <foo>
+                <bar>baz</bar>
+            </foo>
+        """.toByteArray()))
         parser.next()
 
-        val tagParser = TagParser(Foo())
-        tagParser.apply {
+        val foo = TagParser.create<Foo>(Xml.Tag("", "foo")) {
             "bar" { apply { bar = Bar(Xml.parseText(it)) } }
-        }.parse(parser)
+        }.parse(Foo(), parser)
 
-        assertEquals("baz", tagParser.builder.bar?.value)
+        assertEquals("baz", foo.bar?.value)
     }
 
     @Test
@@ -44,7 +45,7 @@ class XmlTest {
             <foo>
                 <bar>baz</bar>
             </foo>
-        """.trimIndent().toByteArray()))
+        """.toByteArray()))
         parser.next()
 
         val foo = Foo.parse(parser)

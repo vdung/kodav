@@ -20,11 +20,14 @@ data class PropStat(val props: Map<Xml.Tag, Prop<*>>, val status: String?) {
     inline fun <reified T, reified U : Prop<T>> propValue(tag: Xml.Tag) = prop<U>(tag)?.value
 
     companion object {
-        @Throws(XmlPullParserException::class, IOException::class)
-        fun parse(parser: XmlPullParser) = Xml.parse(parser, TAG_PROPSTAT, Builder()) {
+        @JvmStatic
+        private val PARSER = TagParser.create<Builder>(TAG_PROPSTAT) {
             TAG_STATUS { setStatus(Xml.parseText(it)) }
             TAG_PROP { setProps(Prop.parse(it)) }
-        }.build()
+        }
+
+        @Throws(XmlPullParserException::class, IOException::class)
+        fun parse(parser: XmlPullParser) = PARSER.parse(Builder(), parser).build()
     }
 
     class Builder {
@@ -40,11 +43,14 @@ data class PropStat(val props: Map<Xml.Tag, Prop<*>>, val status: String?) {
 
 data class Response(val href: String?, val propStats: List<PropStat>) {
     companion object {
+        @JvmStatic
+        private val PARSER = TagParser.create<Builder>(TAG_RESPONSE) {
+            TAG_HREF { setHref(vdung.kodav.Xml.parseText(it)) }
+            TAG_PROPSTAT { addPropStat(vdung.kodav.PropStat.parse(it)) }
+        }
+
         @Throws(XmlPullParserException::class, IOException::class)
-        fun parse(parser: XmlPullParser) = Xml.parse(parser, TAG_RESPONSE, Builder()) {
-            TAG_HREF { setHref(Xml.parseText(it)) }
-            TAG_PROPSTAT { addPropStat(PropStat.parse(it)) }
-        }.build()
+        fun parse(parser: XmlPullParser) = PARSER.parse(Builder(), parser).build()
     }
 
     class Builder {
@@ -60,10 +66,13 @@ data class Response(val href: String?, val propStats: List<PropStat>) {
 
 data class MultiStatus(val responses: List<Response>) {
     companion object {
-        @Throws(XmlPullParserException::class, IOException::class)
-        fun parse(parser: XmlPullParser) = Xml.parse(parser, TAG_MULTISTATUS, Builder()) {
+        @JvmStatic
+        private val PARSER = TagParser.create<Builder>(TAG_MULTISTATUS) {
             TAG_RESPONSE { addResponse(Response.parse(it)) }
-        }.build()
+        }
+
+        @Throws(XmlPullParserException::class, IOException::class)
+        fun parse(parser: XmlPullParser) = PARSER.parse(Builder(), parser).build()
     }
 
     class Builder {

@@ -11,30 +11,45 @@ import java.io.OutputStream
 /**
  * A parser that, combined with a [builder], will parse the XML and build an object at the same time.
  *
- * @sample Xml.parse
- * @param builder An object builder
  * @see Xml.parse
  */
-class TagParser<T>(val builder: T) {
+class TagParser<T>(private val tag: Xml.Tag, private val factories: Map<Xml.Tag, (XmlPullParser, T) -> Unit>) {
 
-    private val factories = mutableMapOf<Xml.Tag, (XmlPullParser) -> Unit>()
+    fun parse(builder: T, parser: XmlPullParser): T {
+        Xml.parseTag(parser, tag) {
+            val childTag = Xml.Tag(it.namespace, it.name)
+            val factory = factories[childTag] ?: { p, _ -> Xml.skip(p) }
+            factory(parser, builder)
+        }
 
-    private fun register(tag: Xml.Tag, parser: (XmlPullParser) -> Unit) {
-        factories[tag] = parser
+        return builder
     }
 
-    operator fun Xml.Tag.invoke(parse: T.(XmlPullParser) -> Any) = register(this) { builder.parse(it) }
-    operator fun String.invoke(parse: T.(XmlPullParser) -> Any) = Xml.Tag("", this)(parse)
+    companion object {
+        inline fun <T> builder(tag: Xml.Tag, init: Builder<T>.() -> Unit) = Builder<T>(tag).apply(init)
+        inline fun <T> create(tag: Xml.Tag, init: Builder<T>.() -> Unit) = builder(tag, init).create()
+    }
 
-    operator fun <U> Xml.Tag.invoke(parse: (XmlPullParser) -> U, build: T.(U) -> Any) =
-            register(this) { builder.build(parse(it)) }
+    class Builder<T>(private val tag: Xml.Tag) {
+        private val factories = mutableMapOf<Xml.Tag, (XmlPullParser, T) -> Unit>()
 
-    operator fun <U> String.invoke(parse: (XmlPullParser) -> U, build: T.(U) -> Any) = Xml.Tag("", this)(parse, build)
+        private fun register(tag: Xml.Tag, parser: (XmlPullParser, T) -> Unit) {
+            factories[tag] = parser
+        }
 
-    fun parse(parser: XmlPullParser) {
-        val tag = Xml.Tag(parser.namespace, parser.name)
-        val factory = factories[tag] ?: Xml::skip
-        factory(parser)
+        operator fun Xml.Tag.invoke(parse: T.(XmlPullParser) -> Any) = register(this) { parser, builder ->
+            builder.parse(parser)
+        }
+
+        operator fun String.invoke(parse: T.(XmlPullParser) -> Any) = Xml.Tag("", this)(parse)
+
+        operator fun <U> Xml.Tag.invoke(parse: (XmlPullParser) -> U, build: T.(U) -> Any) = register(this) { parser, builder ->
+            builder.build(parse(parser))
+        }
+
+        operator fun <U> String.invoke(parse: (XmlPullParser) -> U, build: T.(U) -> Any) = Xml.Tag("", this)(parse, build)
+
+        fun create() = TagParser(tag, factories)
     }
 }
 
@@ -215,48 +230,24 @@ object Xml {
      * Parse the current element and build an object using a [TagParser] combined with the [builder].
      * This is mainly used for implementing parsers for concrete types.
      *
-     * <code>
-     *
-     *      data class Bar(val value: String?) {
-     *          companion object {
-     *              fun parse(parser: XmlPullParser) = Bar(Xml.parseText(parser))
-     *          }
-     *      }
-     *
-     *      data class Foo(var bar: Bar?) {
-     *          companion object {
-     *              fun parse(parser: XmlPullParser) = Xml.parse(parser, Xml.Tag("", "foo"), Foo()) {
-     *                  "bar" { apply { bar = Bar.parse(it) } }
-     *              }.build()
-     *          }
-     *      }
-     *
-     *      val parser = Xml.newPullParser(ByteArrayInputStream("""
-     *          <foo>
-     *              <bar>baz</bar>
-     *          </foo>
-     *      """.toByteArray()))
-     *      parser.next()
-     *
-     *      val foo = Foo.parse(parser)
-     *      assertEquals(foo.bar?.value, "baz")
-     *
-     *  </code>
-     *
      *  @param parser The XML parser
      *  @param tag The current element's tag
      *  @param builder An object that will be passed to a [TagParser]
-     *  @param init [TagParser] configuration
+     *  @param init [TagParser.Builder] configuration
      *  @return The [builder]
      */
     @Throws(XmlPullParserException::class, IOException::class)
-    inline fun <T> parse(parser: XmlPullParser, tag: Xml.Tag, builder: T, init: TagParser<T>.() -> Unit): T {
-        val tagParser = TagParser(builder)
-        tagParser.init()
-        parseTag(parser, tag) {
-            tagParser.parse(it)
-        }
-
-        return builder
+    fun <T> parse(parser: XmlPullParser, tag: Xml.Tag, builder: T, init: TagParser.Builder<T>.() -> Unit): T {
+        return parse(parser, builder, TagParser.create(tag, init))
     }
+
+    /**
+     * Parse the current element and build an object using an initialized [TagParser].
+     *
+     * @param parser The XML parser
+     * @param builder An object that will be passed to the [TagParser]
+     * @param tagParser The tag parser
+     */
+    @Throws(XmlPullParserException::class, IOException::class)
+    fun <T> parse(parser: XmlPullParser, builder: T, tagParser: TagParser<T>) = tagParser.parse(builder, parser)
 }
