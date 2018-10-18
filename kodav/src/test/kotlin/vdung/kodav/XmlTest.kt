@@ -35,7 +35,7 @@ class XmlTest {
             "bar" { apply { bar = Bar(Xml.parseText(it)) } }
         }.parse(parser)
 
-        assertEquals(tagParser.builder.bar?.value, "baz")
+        assertEquals("baz", tagParser.builder.bar?.value)
     }
 
     @Test
@@ -49,8 +49,7 @@ class XmlTest {
 
         val foo = Foo.parse(parser)
 
-        assertNotNull(foo.bar)
-        assertEquals(foo.bar?.value, "baz")
+        assertEquals("baz", foo.bar?.value)
     }
 }
 

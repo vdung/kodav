@@ -40,22 +40,21 @@ class WebDavTest {
             </d:multistatus>
         """.toByteArray()))
         val multiStatus = WebDav.multiStatus(parser)
-        assertEquals(multiStatus.responses.size, 2)
+        assertEquals(2, multiStatus.responses.size)
         multiStatus.apply {
             responses[0].apply {
-                assertEquals(href, "/remote.php/dav/files/USERNAME/")
-                assertEquals(propStats.size, 1)
-                assertEquals(propStats[0].status, "HTTP/1.1 200 OK")
+                assertEquals("/remote.php/dav/files/USERNAME/", href)
+                assertEquals(1, propStats.size)
+                assertEquals("HTTP/1.1 200 OK", propStats[0].status)
             }
             responses[1].apply {
-                assertEquals(href, "/remote.php/dav/files/USERNAME/welcome.txt")
-                assertEquals(propStats.size, 1)
-                assertEquals(propStats[0].prop(GetContentType.tag), GetContentType("text/plain"))
-                assertEquals(propStats[0].propValue(GetContentLength.tag)!!, 163)
-                assertEquals(propStats[0].propValue(GetLastModified.tag), HttpDate.parse("Tue, 13 Oct 2015 17:07:35 GMT"))
-                assertEquals(propStats[0].status, "HTTP/1.1 200 OK")
+                assertEquals("/remote.php/dav/files/USERNAME/welcome.txt", href)
+                assertEquals(1, propStats.size)
+                assertEquals(GetContentType("text/plain"), propStats[0].prop(GetContentType.tag))
+                assertEquals(163, propStats[0].propValue(GetContentLength.tag)!!)
+                assertEquals(HttpDate.parse("Tue, 13 Oct 2015 17:07:35 GMT"), propStats[0].propValue(GetLastModified.tag))
+                assertEquals("HTTP/1.1 200 OK", propStats[0].status)
             }
-            // TODO: add more props and tests
         }
     }
 
@@ -72,7 +71,7 @@ class WebDavTest {
                 }
                 from {
                     scope {
-                        href("/files/james")
+                        href("/files/USER")
                         depth(null)
                     }
                 }
@@ -87,7 +86,7 @@ class WebDavTest {
             }
         }
 
-        assertEquals(output.toString(), """
+        assertEquals("""
             <?xml version='1.0' encoding='UTF-8' standalone='no' ?>
             <d:searchrequest xmlns:d="DAV:">
                 <d:basicsearch>
@@ -98,7 +97,7 @@ class WebDavTest {
                     </d:select>
                     <d:from>
                         <d:scope>
-                            <d:href>/files/james</d:href>
+                            <d:href>/files/USER</d:href>
                             <d:depth>infinity</d:depth>
                         </d:scope>
                     </d:from>
@@ -112,6 +111,6 @@ class WebDavTest {
                     </d:where>
                 </d:basicsearch>
             </d:searchrequest>
-        """.replace(Regex("\\n\\s*"), ""))
+        """.replace(Regex("\\n\\s*"), ""), output.toString())
     }
 }
