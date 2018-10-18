@@ -35,9 +35,9 @@ abstract class Op(tag: Xml.Tag) : TagWriter(tag) {
         class Or : Log(webDavTag("or"))
         class Not : Log(webDavTag("not"))
 
-        fun and(init: Op.() -> Unit) = addChild(And(), init)
-        fun or(init: Op.() -> Unit) = addChild(Or(), init)
-        fun not(init: Op.() -> Unit) = addChild(Not(), init)
+        fun and(init: Log.() -> Unit) = addChild(And(), init)
+        fun or(init: Log.() -> Unit) = addChild(Or(), init)
+        fun not(init: Log.() -> Unit) = addChild(Not(), init)
         fun eq(init: Comp.() -> Unit) = addChild(Comp.Eq(), init)
         fun lt(init: Comp.() -> Unit) = addChild(Comp.Lt(), init)
         fun gt(init: Comp.() -> Unit) = addChild(Comp.Gt(), init)

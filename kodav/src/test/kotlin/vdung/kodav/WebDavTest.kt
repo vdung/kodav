@@ -76,11 +76,27 @@ class WebDavTest {
                     }
                 }
                 where {
-                    eq {
-                        prop {
-                            -PROP_GETCONTENTTYPE
+                    or {
+                        and {
+                            eq {
+                                prop {
+                                    -PROP_GETCONTENTTYPE
+                                }
+                                literal("image/png")
+                            }
+                            lt {
+                                prop {
+                                    -PROP_GETLASTMODIFIED
+                                }
+                                literal("Tue, 13 Oct 2015 17:07:35 GMT")
+                            }
                         }
-                        literal("image/png")
+                        gte {
+                            prop {
+                                -PROP_GETLASTMODIFIED
+                            }
+                            literal("Tue, 13 Oct 2015 17:07:45 GMT")
+                        }
                     }
                 }
             }
@@ -102,12 +118,28 @@ class WebDavTest {
                         </d:scope>
                     </d:from>
                     <d:where>
-                        <d:eq>
-                            <d:prop>
-                                <d:getcontenttype />
-                            </d:prop>
-                            <d:literal>image/png</d:literal>
-                        </d:eq>
+                        <d:or>
+                            <d:and>
+                                <d:eq>
+                                    <d:prop>
+                                        <d:getcontenttype />
+                                    </d:prop>
+                                    <d:literal>image/png</d:literal>
+                                </d:eq>
+                                <d:lt>
+                                    <d:prop>
+                                        <d:getlastmodified />
+                                    </d:prop>
+                                    <d:literal>Tue, 13 Oct 2015 17:07:35 GMT</d:literal>
+                                </d:lt>
+                            </d:and>
+                            <d:gte>
+                                <d:prop>
+                                    <d:getlastmodified />
+                                </d:prop>
+                                <d:literal>Tue, 13 Oct 2015 17:07:45 GMT</d:literal>
+                            </d:gte>
+                        </d:or>
                     </d:where>
                 </d:basicsearch>
             </d:searchrequest>
