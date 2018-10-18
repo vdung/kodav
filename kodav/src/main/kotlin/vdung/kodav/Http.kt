@@ -32,11 +32,13 @@ internal object HttpDate {
     private val TIMEZONE_UTC = TimeZone.getTimeZone("UTC")
 
     @JvmStatic
-    private val STANDARD_DATE_FORMAT: ThreadLocal<DateFormat> = ThreadLocal.withInitial {
-        val rfc1123 = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US)
-        rfc1123.isLenient = false
-        rfc1123.timeZone = TIMEZONE_UTC
-        return@withInitial rfc1123
+    private val STANDARD_DATE_FORMAT: ThreadLocal<DateFormat> = object : ThreadLocal<DateFormat>() {
+        override fun initialValue(): DateFormat {
+            val rfc1123 = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US)
+            rfc1123.isLenient = false
+            rfc1123.timeZone = TIMEZONE_UTC
+            return rfc1123
+        }
     }
 
     /**
