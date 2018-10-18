@@ -50,8 +50,9 @@ class WebDavTest {
             responses[1].apply {
                 assertEquals(href, "/remote.php/dav/files/USERNAME/welcome.txt")
                 assertEquals(propStats.size, 1)
-                assertEquals(propStats[0].prop<GetContentType>(GetContentType.tag), GetContentType("text/plain"))
-                assertEquals(propStats[0].prop<GetContentLength>(GetContentLength.tag), GetContentLength(163))
+                assertEquals(propStats[0].prop(GetContentType.tag), GetContentType("text/plain"))
+                assertEquals(propStats[0].propValue(GetContentLength.tag)!!, 163)
+                assertEquals(propStats[0].propValue(GetLastModified.tag), HttpDate.parse("Tue, 13 Oct 2015 17:07:35 GMT"))
                 assertEquals(propStats[0].status, "HTTP/1.1 200 OK")
             }
             // TODO: add more props and tests

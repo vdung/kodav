@@ -13,8 +13,11 @@ val TAG_HREF = webDavTag("href")
 val TAG_RESPONSE = webDavTag("response")
 val TAG_MULTISTATUS = webDavTag("multistatus")
 
-data class PropStat(val props: Map<Xml.Tag, Prop>, val status: String?) {
-    inline fun <reified T : Prop> prop(tag: Xml.Tag) = props[tag] as? T
+data class PropStat(val props: Map<Xml.Tag, Prop<*>>, val status: String?) {
+
+    inline fun <reified U : Prop<*>> prop(tag: Xml.Tag) = props[tag] as? U
+
+    inline fun <reified T, reified U : Prop<T>> propValue(tag: Xml.Tag) = prop<U>(tag)?.value
 
     companion object {
         @Throws(XmlPullParserException::class, IOException::class)
@@ -25,11 +28,11 @@ data class PropStat(val props: Map<Xml.Tag, Prop>, val status: String?) {
     }
 
     class Builder {
-        private var props = linkedMapOf<Xml.Tag, Prop>()
+        private var props = linkedMapOf<Xml.Tag, Prop<*>>()
         private var status: String? = null
 
         fun setStatus(status: String?) = apply { this.status = status }
-        fun setProps(props: Map<Xml.Tag, Prop>) = apply { this.props = LinkedHashMap(props) }
+        fun setProps(props: Map<Xml.Tag, Prop<*>>) = apply { this.props = LinkedHashMap(props) }
 
         fun build() = PropStat(props, status)
     }

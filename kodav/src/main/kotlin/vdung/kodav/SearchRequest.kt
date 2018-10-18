@@ -11,7 +11,7 @@ val TAG_WHERE = webDavTag("where")
 val TAG_BASICSEARCH = webDavTag("basicsearch")
 val TAG_SEARCHREQUEST = webDavTag("searchrequest")
 
-data class Select(val props: List<Prop>) {
+data class Select(val props: List<Xml.Tag>) {
     class Writer : TagWriter(TAG_SELECT) {
         fun prop(init: Prop.Writer.() -> Unit) = addChild(Prop.Writer(), init)
     }
