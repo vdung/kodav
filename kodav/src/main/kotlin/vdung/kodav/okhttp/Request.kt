@@ -7,7 +7,7 @@ import vdung.kodav.WebDav
 import vdung.kodav.Xml
 import java.io.ByteArrayOutputStream
 
-fun searchRequest(init: SearchRequest.Writer.() -> Unit): RequestBody {
+fun searchRequest(init: SearchRequest.() -> Unit): RequestBody {
     val output = ByteArrayOutputStream()
     WebDav.searchRequest(Xml.newSerializer(output), init)
 

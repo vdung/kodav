@@ -25,12 +25,12 @@ object WebDav {
      * Serialize a [SearchRequest] to the [serializer].
      *
      * @param serializer An initialized [XmlSerializer]
-     * @param init [SearchRequest.Writer] configuration
-     * @return The [serializer]
+     * @param init [SearchRequest] configuration
+     * @return The [SearchRequest]
      */
     @Throws(IOException::class)
-    fun searchRequest(serializer: XmlSerializer, init: SearchRequest.Writer.() -> Unit): XmlSerializer {
-        val writer = SearchRequest.Writer()
+    fun searchRequest(serializer: XmlSerializer, init: SearchRequest.() -> Unit): SearchRequest {
+        val writer = SearchRequest()
         writer.init()
 
         serializer.setPrefix("d", NS_DAV)
@@ -38,6 +38,6 @@ object WebDav {
         writer.write(serializer)
         serializer.endDocument()
 
-        return serializer
+        return writer
     }
 }
