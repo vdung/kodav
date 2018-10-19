@@ -2,6 +2,7 @@ package vdung.kodav
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.xmlpull.v1.XmlPullParser
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
@@ -39,6 +40,7 @@ class WebDavTest {
                 </d:response>
             </d:multistatus>
         """.toByteArray()))
+
         val multiStatus = WebDav.multiStatus(parser)
         assertEquals(2, multiStatus.responses.size)
         multiStatus.apply {
@@ -144,5 +146,30 @@ class WebDavTest {
                 </d:basicsearch>
             </d:searchrequest>
         """.replace(Regex("\\n\\s*"), ""), output.toString())
+    }
+
+    @Test
+    fun prop_parseCustom() {
+        data class CustomProp(override var value: String? = null) : Prop<String>, Prop.Parser<CustomProp> {
+            override val tag = Xml.Tag("custom", "customprop")
+            override fun parse(parser: XmlPullParser) = copy(value = Xml.parseText(parser))
+        }
+
+        Prop.register(CustomProp())
+
+        val parser = Xml.newPullParser(ByteArrayInputStream("""
+            <d:prop xmlns:d="DAV:" xmlns:r="custom">
+                <d:getlastmodified>Tue, 13 Oct 2015 17:07:35 GMT</d:getlastmodified>
+                <d:getcontentlength>163</d:getcontentlength>
+                <d:resourcetype/>
+                <d:getetag>"47465fae667b2d0fee154f5e17d1f0f1"</d:getetag>
+                <d:getcontenttype>text/plain</d:getcontenttype>
+                <r:customprop>A custom prop</r:customprop>
+            </d:prop>
+        """.toByteArray()))
+        parser.next()
+
+        val propMap = Prop.parse(parser)
+        assertEquals(propMap.get(Xml.Tag("custom", "customprop")), CustomProp("A custom prop"))
     }
 }

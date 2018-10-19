@@ -11,10 +11,12 @@ import java.io.OutputStream
 /**
  * A parser that, combined with a [builder], will parse the XML and build an object at the same time.
  *
- * @see Xml.parse
+ * @sample [MultiStatus]
+ * @see [Xml.parse]
  */
 class TagParser<T>(private val tag: Xml.Tag, private val factories: Map<Xml.Tag, (XmlPullParser, T) -> Unit>) {
 
+    @Throws(XmlPullParserException::class, IOException::class)
     fun parse(builder: T, parser: XmlPullParser): T {
         Xml.parseTag(parser, tag) {
             val childTag = Xml.Tag(it.namespace, it.name)
@@ -33,7 +35,7 @@ class TagParser<T>(private val tag: Xml.Tag, private val factories: Map<Xml.Tag,
     class Builder<T>(private val tag: Xml.Tag) {
         private val factories = mutableMapOf<Xml.Tag, (XmlPullParser, T) -> Unit>()
 
-        private fun register(tag: Xml.Tag, parser: (XmlPullParser, T) -> Unit) {
+        fun register(tag: Xml.Tag, parser: (XmlPullParser, T) -> Unit) {
             factories[tag] = parser
         }
 
@@ -81,7 +83,7 @@ class TextWriter(val value: String?) : XmlWriter {
 /**
  * A [XmlWriter] that write an element with namespace and name from [tag].
  *
- * @sample SearchRequest.Writer
+ * @sample Op
  * @param tag The namespace and name of the element
  */
 open class TagWriter(val tag: Xml.Tag) : XmlWriter {

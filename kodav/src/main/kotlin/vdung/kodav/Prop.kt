@@ -6,6 +6,7 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.util.*
+import kotlin.collections.LinkedHashMap
 
 val TAG_PROP = webDavTag("prop")
 
@@ -13,8 +14,6 @@ val PROP_DISPLAYNAME = webDavTag("displayname")
 val PROP_GETCONTENTTYPE = webDavTag("getcontenttype")
 val PROP_GETCONTENTLENGTH = webDavTag("getcontentlength")
 val PROP_GETLASTMODIFIED = webDavTag("getlastmodified")
-
-typealias PropParser<T> = (XmlPullParser) -> Prop<T>
 
 interface Prop<T> {
     val value: T?
@@ -30,33 +29,29 @@ interface Prop<T> {
     }
 
     companion object {
-        private val factories = mutableMapOf<Xml.Tag, PropParser<*>>()
-
-        init {
-            register(DisplayName.Companion)
-            register(GetContentType.Companion)
-            register(GetContentLength.Companion)
-            register(GetLastModified.Companion)
-        }
-
-        fun register(tag: Xml.Tag, parser: PropParser<*>) {
-            factories[tag] = parser
-
-        }
-
-        fun register(parser: Parser<*>) {
-            register(parser.tag, parser::parse)
-
-        }
-
-        @Throws(XmlPullParserException::class, IOException::class)
-        fun parse(parser: XmlPullParser) = Xml.parse(parser, TAG_PROP, linkedMapOf<Xml.Tag, Prop<*>>()) {
-            for ((tag, factory) in factories) {
-                tag {
-                    set(tag, factory(it))
+        private fun TagParser.Builder<LinkedHashMap<Xml.Tag, Prop<*>>>.register(vararg propParsers: Prop.Parser<*>) = apply {
+            for (propParser in propParsers) {
+                propParser.tag {
+                    set(propParser.tag, propParser.parse(it))
                 }
             }
         }
+
+        private val parserBuilder = TagParser.builder<LinkedHashMap<Xml.Tag, Prop<*>>>(TAG_PROP) {
+            register(
+                    DisplayName,
+                    GetContentType,
+                    GetContentLength,
+                    GetLastModified
+            )
+        }
+
+        fun register(propParser: Parser<*>) {
+            parserBuilder.register(propParser)
+        }
+
+        @Throws(XmlPullParserException::class, IOException::class)
+        fun parse(parser: XmlPullParser) = parserBuilder.create().parse(linkedMapOf(), parser)
     }
 }
 
