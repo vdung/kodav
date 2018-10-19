@@ -9,13 +9,22 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * A parser that, combined with a [builder], will parse the XML and build an object at the same time.
+ * An XML element parser.
  *
+ * @param tag The element's namespace and name
+ * @param factories The element's children parser
  * @sample [MultiStatus]
  * @see [Xml.parse]
  */
 class TagParser<T>(private val tag: Xml.Tag, private val factories: Map<Xml.Tag, (XmlPullParser, T) -> Unit>) {
 
+    /**
+     * Parse the element. The [builder] will be passed to the children's factories along with the [parser].
+     *
+     * @param builder An object builder
+     * @param parser The XML parser
+     * @return The [builder]
+     */
     @Throws(XmlPullParserException::class, IOException::class)
     fun parse(builder: T, parser: XmlPullParser): T {
         Xml.parseTag(parser, tag) {
@@ -28,29 +37,72 @@ class TagParser<T>(private val tag: Xml.Tag, private val factories: Map<Xml.Tag,
     }
 
     companion object {
+        /**
+         * Create a [TagParser.Builder].
+         *
+         * @param tag [TagParser.tag]
+         * @param init [TagParser.Builder] configuration
+         * @return [TagParser.Builder]
+         */
         inline fun <T> builder(tag: Xml.Tag, init: Builder<T>.() -> Unit) = Builder<T>(tag).apply(init)
+
+        /**
+         * Create a [TagParser].
+         *
+         * @param tag [TagParser.tag]
+         * @param init [TagParser.Builder] configuration
+         * @return [TagParser]
+         */
         inline fun <T> create(tag: Xml.Tag, init: Builder<T>.() -> Unit) = builder(tag, init).create()
     }
 
+    /**
+     * [TagParser] builder.
+     *
+     * @param tag [TagParser.tag]
+     */
     class Builder<T>(private val tag: Xml.Tag) {
         private val factories = mutableMapOf<Xml.Tag, (XmlPullParser, T) -> Unit>()
 
+        /**
+         * Register a child element's parser.
+         *
+         * @param tag The child element's tag
+         * @param parser The child element's parser function
+         */
         fun register(tag: Xml.Tag, parser: (XmlPullParser, T) -> Unit) {
             factories[tag] = parser
         }
 
+        /**
+         * @see [register]
+         */
         operator fun Xml.Tag.invoke(parse: T.(XmlPullParser) -> Any) = register(this) { parser, builder ->
             builder.parse(parser)
         }
 
+        /**
+         * @see [register]
+         */
         operator fun String.invoke(parse: T.(XmlPullParser) -> Any) = Xml.Tag("", this)(parse)
 
+        /**
+         * @see [register]
+         */
         operator fun <U> Xml.Tag.invoke(parse: (XmlPullParser) -> U, build: T.(U) -> Any) = register(this) { parser, builder ->
             builder.build(parse(parser))
         }
 
+        /**
+         * @see [register]
+         */
         operator fun <U> String.invoke(parse: (XmlPullParser) -> U, build: T.(U) -> Any) = Xml.Tag("", this)(parse, build)
 
+        /**
+         * Create a [TagParser]
+         *
+         * @return [TagParser]
+         */
         fun create() = TagParser(tag, factories)
     }
 }
@@ -59,10 +111,16 @@ class TagParser<T>(private val tag: Xml.Tag, private val factories: Map<Xml.Tag,
 annotation class WriterMarker
 
 /**
- * Represent an XML writer. [write] should write a complete element.
+ * Represent an XML writer.
  */
 @WriterMarker
 interface XmlWriter {
+
+    /**
+     * Write an element to [writer].
+     *
+     * @param writer The XML serializer
+     */
     @Throws(IOException::class)
     fun write(writer: XmlSerializer)
 }
@@ -105,10 +163,7 @@ open class TagWriter(val tag: Xml.Tag) : XmlWriter {
      * @param child The child's writer
      * @param init [child] configuration
      */
-    fun <T : XmlWriter> addChild(child: T, init: T.() -> Unit) = apply {
-        child.init()
-        children.add(child)
-    }
+    fun <T : XmlWriter> addChild(child: T, init: T.() -> Unit) = apply { children.add(child.apply(init)) }
 }
 
 /**
@@ -171,7 +226,6 @@ object Xml {
      *
      * [parser]'s current eventType must be [XmlPullParser.START_TAG].
      * Parsing will finish after encountering an [XmlPullParser.END_TAG].
-     * Each time [parse] is called, it should parse only **one** child element.
      *
      * @param parser The XML parser
      * @param tag The current element's namespace and name
@@ -230,11 +284,10 @@ object Xml {
 
     /**
      * Parse the current element and build an object using a [TagParser] combined with the [builder].
-     * This is mainly used for implementing parsers for concrete types.
      *
      *  @param parser The XML parser
      *  @param tag The current element's tag
-     *  @param builder An object that will be passed to a [TagParser]
+     *  @param builder The object that will be passed to [TagParser.parse]
      *  @param init [TagParser.Builder] configuration
      *  @return The [builder]
      */
@@ -244,11 +297,12 @@ object Xml {
     }
 
     /**
-     * Parse the current element and build an object using an initialized [TagParser].
+     * Parse the current element using an initialized [TagParser].
      *
      * @param parser The XML parser
-     * @param builder An object that will be passed to the [TagParser]
+     * @param builder The object that will be passed to [TagParser.parse]
      * @param tagParser The tag parser
+     * @return The [builder]
      */
     @Throws(XmlPullParserException::class, IOException::class)
     fun <T> parse(parser: XmlPullParser, builder: T, tagParser: TagParser<T>) = tagParser.parse(builder, parser)
