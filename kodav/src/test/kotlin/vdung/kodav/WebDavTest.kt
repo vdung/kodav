@@ -74,7 +74,7 @@ class WebDavTest {
                 from {
                     scope {
                         href("/files/USER")
-                        depth(null)
+                        depth(Scope.DEPTH_INFINITY)
                     }
                 }
                 where {
