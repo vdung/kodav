@@ -30,8 +30,7 @@ object WebDav {
      */
     @Throws(IOException::class)
     fun searchRequest(serializer: XmlSerializer, init: SearchRequest.() -> Unit): SearchRequest {
-        val writer = SearchRequest()
-        writer.init()
+        val writer = SearchRequest().apply(init)
 
         serializer.setPrefix("d", NS_DAV)
         serializer.startDocument("UTF-8", false)

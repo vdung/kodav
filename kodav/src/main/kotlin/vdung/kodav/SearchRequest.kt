@@ -44,6 +44,7 @@ abstract class Op(tag: Xml.Tag) : TagWriter(tag) {
         fun gt(init: Comp.() -> Unit) = addChild(Gt(), init)
         fun lte(init: Comp.() -> Unit) = addChild(Lte(), init)
         fun gte(init: Comp.() -> Unit) = addChild(Gte(), init)
+        fun like(init: Comp.() -> Unit) = addChild(Like(), init)
     }
 
     abstract class Comp(tag: Xml.Tag) : Op(tag) {
@@ -63,6 +64,8 @@ abstract class Op(tag: Xml.Tag) : TagWriter(tag) {
     class Gt : Comp(webDavTag("gt"))
     class Lte : Comp(webDavTag("lte"))
     class Gte : Comp(webDavTag("gte"))
+
+    class Like : Comp(webDavTag("like"))
 }
 
 class Where : Op.Log(TAG_WHERE)
