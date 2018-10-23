@@ -50,8 +50,8 @@ abstract class Op(tag: Xml.Tag) : TagWriter(tag) {
     abstract class Comp(tag: Xml.Tag) : Op(tag) {
         fun prop(init: Prop.Writer.() -> Unit) = addChild(Prop.Writer(), init)
 
-        fun literal(literal: String) = addChild(TagWriter(TAG_LITERAL)) {
-            addChild(TextWriter(literal)) {}
+        fun literal(literal: Any) = addChild(TagWriter(TAG_LITERAL)) {
+            addChild(TextWriter(literal.toString())) {}
         }
     }
 
