@@ -149,6 +149,33 @@ class WebDavTest {
     }
 
     @Test
+    fun propFind_write() {
+        val output = ByteArrayOutputStream()
+        val serializer = Xml.newSerializer(output)
+
+        WebDav.propFind(serializer) {
+            prop {
+                -PROP_GETLASTMODIFIED
+                -PROP_GETETAG
+                -PROP_GETCONTENTTYPE
+                -PROP_GETCONTENTLENGTH
+            }
+        }
+
+        assertEquals("""
+            <?xml version='1.0' encoding='UTF-8' standalone='no' ?>
+            <d:propfind xmlns:d="DAV:">
+                <d:prop>
+                    <d:getlastmodified />
+                    <d:getetag />
+                    <d:getcontenttype />
+                    <d:getcontentlength />
+                </d:prop>
+            </d:propfind>
+        """.replace(Regex("\\n\\s*"), ""), output.toString())
+    }
+
+    @Test
     fun prop_parseCustom() {
         data class CustomProp(override var value: String? = null) : Prop<String>, Prop.Parser<CustomProp> {
             override val tag = Xml.Tag("custom", "customprop")

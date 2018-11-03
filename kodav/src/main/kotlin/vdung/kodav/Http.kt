@@ -17,10 +17,9 @@
 package vdung.kodav
 
 import java.text.DateFormat
+import java.text.ParsePosition
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.Locale
-import java.text.ParsePosition
 
 
 /**

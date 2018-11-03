@@ -13,6 +13,7 @@ val TAG_PROP = webDavTag("prop")
 val PROP_DISPLAYNAME = webDavTag("displayname")
 val PROP_GETCONTENTTYPE = webDavTag("getcontenttype")
 val PROP_GETCONTENTLENGTH = webDavTag("getcontentlength")
+val PROP_GETETAG = webDavTag("getetag")
 val PROP_GETLASTMODIFIED = webDavTag("getlastmodified")
 
 interface Prop<T> {
@@ -42,6 +43,7 @@ interface Prop<T> {
                     DisplayName,
                     GetContentType,
                     GetContentLength,
+                    GetETag,
                     GetLastModified
             )
         }
@@ -79,6 +81,15 @@ data class GetContentType(override val value: String?) : Prop<String> {
 
         override fun parse(parser: XmlPullParser) =
                 GetContentType(Xml.parseText(parser))
+    }
+}
+
+data class GetETag(override val value: String?) : Prop<String> {
+    companion object : Prop.Parser<GetETag> {
+        override val tag: Xml.Tag get() = PROP_GETETAG
+
+        override fun parse(parser: XmlPullParser) =
+                GetETag(Xml.parseText(parser))
     }
 }
 

@@ -42,6 +42,7 @@ data class PropStat(val props: Map<Xml.Tag, Prop<*>>, val status: String?) {
 }
 
 data class Response(val href: String?, val propStats: List<PropStat>) {
+
     companion object {
         @JvmStatic
         private val PARSER = TagParser.create<Builder>(TAG_RESPONSE) {

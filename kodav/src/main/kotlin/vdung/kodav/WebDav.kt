@@ -39,4 +39,23 @@ object WebDav {
 
         return writer
     }
+
+    /**
+     * Serialize a [PropFind] to the [serializer].
+     *
+     * @param serializer An initialized [XmlSerializer]
+     * @param init [PropFind] configuration
+     * @return The [PropFind]
+     */
+    @Throws(IOException::class)
+    fun propFind(serializer: XmlSerializer, init: PropFind.() -> Unit): PropFind {
+        val writer = PropFind().apply(init)
+
+        serializer.setPrefix("d", NS_DAV)
+        serializer.startDocument("UTF-8", false)
+        writer.write(serializer)
+        serializer.endDocument()
+
+        return writer
+    }
 }
