@@ -4,7 +4,8 @@ plugins {
 
 ext {
     versions = [
-            'kotlin': '1.2.71'
+            'kotlin': '1.2.71',
+            'retrofit': '2.4.0'
     ]
 }
 

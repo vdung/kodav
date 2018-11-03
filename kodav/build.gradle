@@ -7,8 +7,8 @@ dependencies {
 
     testImplementation 'junit:junit:4.12'
 
-    compileOnly 'com.squareup.retrofit2:retrofit:2.4.0'
-    testImplementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    compileOnly "com.squareup.retrofit2:retrofit:$versions.retrofit"
+    testImplementation "com.squareup.retrofit2:retrofit:$versions.retrofit"
     testImplementation 'com.squareup.okhttp3:mockwebserver:3.11.0'
 
     compileOnly 'xmlpull:xmlpull:1.1.3.1'
